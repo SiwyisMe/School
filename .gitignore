@@ -1,0 +1,8 @@
+/Flight-booking-system
+.DS_Store
+.env
+/build
+/dist
+/logs
+/coverage
+/.vscode
