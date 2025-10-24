@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QuizMaster: Test Your Brainpower!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+      .quiz-option:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .selected {
+        background-color: #4f46e5 !important;
+        color: white !important;
+      }
+      .progress-bar {
+        transition: width 0.5s ease-in-out;
+      }
+      .question-transition {
+        animation: fadeIn 0.5s ease-in-out;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-gradient-to-br from-indigo-50 to-purple-50 min-h-screen">
+    <div class="container mx-auto px-4 py-12 max-w-3xl">
+      <!-- Header -->
+      <header class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-indigo-800 mb-2">QuizMaster</h1>
+        <p class="text-lg text-indigo-600">
+          Test your knowledge and challenge yourself!
+        </p>
+      </header>
+
+      <!-- Quiz Container -->
+      <div class="bg-white rounded-xl shadow-xl overflow-hidden">
+        <!-- Progress Bar -->
+        <div class="h-2 bg-gray-200">
+          <div
+            id="progress"
+            class="h-full bg-indigo-500 progress-bar"
+            style="width: 0%"
+          ></div>
+        </div>
+
+        <!-- Quiz Content -->
+        <div class="p-8">
+          <!-- Start Screen -->
+          <div id="start-screen" class="text-center">
+            <div class="mb-8">
+              <i
+                data-feather="award"
+                class="w-16 h-16 mx-auto text-indigo-500"
+              ></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">
+              Ready to test your knowledge?
+            </h2>
+            <p class="text-gray-600 mb-8">
+              This quiz contains 10 questions about various topics. Let's see
+              how much you know!
+            </p>
+            <button
+              id="start-btn"
+              class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105"
+            >
+              Start Quiz
+            </button>
+          </div>
+
+          <!-- Question Screen -->
+          <div id="question-screen" class="hidden">
+            <div class="question-transition">
+              <div class="flex justify-between items-center mb-6">
+                <span
+                  id="question-count"
+                  class="text-sm font-medium text-indigo-600"
+                  >Question 1 of 10</span
+                >
+                <span id="timer" class="text-sm font-medium text-gray-500"
+                  >Time: <span class="text-indigo-600">30</span>s</span
+                >
+              </div>
+
+              <h2
+                id="question"
+                class="text-xl font-semibold text-gray-800 mb-6"
+              ></h2>
+
+              <div id="options" class="space-y-3 mb-8">
+                <!-- Options will be inserted here by JavaScript -->
+              </div>
+
+              <div class="flex justify-end">
+                <button
+                  id="next-btn"
+                  class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-full transition-all duration-300"
+                >
+                  Next Question
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Results Screen -->
+          <div id="results-screen" class="hidden text-center">
+            <div class="mb-8">
+              <i
+                data-feather="star"
+                class="w-16 h-16 mx-auto text-yellow-500"
+              ></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">
+              Quiz Completed!
+            </h2>
+            <div class="bg-indigo-50 rounded-lg p-6 mb-6">
+              <p class="text-lg font-medium text-indigo-700">
+                Your Score:
+                <span id="score" class="text-3xl font-bold">0</span>/10
+              </p>
+              <p id="percentage" class="text-gray-600 mt-2">0% Correct</p>
+            </div>
+            <div id="feedback" class="mb-8 text-left">
+              <!-- Feedback will be inserted here by JavaScript -->
+            </div>
+            <button
+              id="restart-btn"
+              class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full transition-all duration-300"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Quiz questions data
+      const quizData = [
+        {
+          question: "What is the capital of France?",
+          options: ["London", "Berlin", "Paris", "Madrid"],
+          answer: "Paris",
+        },
+        {
+          question: "Which planet is known as the Red Planet?",
+          options: ["Venus", "Mars", "Jupiter", "Saturn"],
+          answer: "Mars",
+        },
+        {
+          question: "What is the largest mammal in the world?",
+          options: ["Elephant", "Blue Whale", "Giraffe", "Hippopotamus"],
+          answer: "Blue Whale",
+        },
+        {
+          question: "Who painted the Mona Lisa?",
+          options: [
+            "Vincent van Gogh",
+            "Pablo Picasso",
+            "Leonardo da Vinci",
+            "Michelangelo",
+          ],
+          answer: "Leonardo da Vinci",
+        },
+        {
+          question: "What is the chemical symbol for gold?",
+          options: ["Go", "Gd", "Au", "Ag"],
+          answer: "Au",
+        },
+        {
+          question: "Which country is home to the kangaroo?",
+          options: ["New Zealand", "South Africa", "Australia", "Brazil"],
+          answer: "Australia",
+        },
+        {
+          question: "What is the largest ocean on Earth?",
+          options: [
+            "Atlantic Ocean",
+            "Indian Ocean",
+            "Arctic Ocean",
+            "Pacific Ocean",
+          ],
+          answer: "Pacific Ocean",
+        },
+        {
+          question: "Who wrote 'Romeo and Juliet'?",
+          options: [
+            "Charles Dickens",
+            "William Shakespeare",
+            "Jane Austen",
+            "Mark Twain",
+          ],
+          answer: "William Shakespeare",
+        },
+        {
+          question: "What is the main component of the Sun?",
+          options: ["Liquid Lava", "Hydrogen", "Oxygen", "Carbon"],
+          answer: "Hydrogen",
+        },
+        {
+          question: "How many continents are there on Earth?",
+          options: ["5", "6", "7", "8"],
+          answer: "7",
+        },
+      ];
+
+      // Quiz variables
+      let currentQuestion = 0;
+      let score = 0;
+      let selectedOption = null;
+      let timeLeft = 30;
+      let timer;
+
+      // DOM elements
+      const startScreen = $("#start-screen");
+      const questionScreen = $("#question-screen");
+      const resultsScreen = $("#results-screen");
+      const questionElement = $("#question");
+      const optionsElement = $("#options");
+      const questionCountElement = $("#question-count");
+      const progressElement = $("#progress");
+      const scoreElement = $("#score");
+      const percentageElement = $("#percentage");
+      const feedbackElement = $("#feedback");
+      const timerElement = $("#timer span");
+      const nextBtn = $("#next-btn");
+      const startBtn = $("#start-btn");
+      const restartBtn = $("#restart-btn");
+
+      // Initialize quiz
+      function initQuiz() {
+        currentQuestion = 0;
+        score = 0;
+        startScreen.hide();
+        questionScreen.show();
+        loadQuestion();
+        startTimer();
+      }
+
+      // Load question
+      function loadQuestion() {
+        resetState();
+        const question = quizData[currentQuestion];
+        questionElement.text(question.question);
+        questionCountElement.text(
+          `Question ${currentQuestion + 1} of ${quizData.length}`
+        );
+
+        // Update progress bar
+        const progress = (currentQuestion / quizData.length) * 100;
+        progressElement.css("width", `${progress}%`);
+
+        // Add options
+        question.options.forEach((option) => {
+          const button = $(
+            `<button class="w-full text-left quiz-option bg-gray-100 hover:bg-indigo-100 text-gray-800 font-medium py-3 px-4 rounded-lg mb-2 transition-all duration-300">${option}</button>`
+          );
+          button.on("click", () => selectOption(button, option));
+          optionsElement.append(button);
+        });
+
+        // Add question transition
+        questionElement.parent().addClass("question-transition");
+      }
+
+      // Reset state for new question
+      function resetState() {
+        clearInterval(timer);
+        timeLeft = 30;
+        timerElement.text(timeLeft);
+        startTimer();
+
+        nextBtn.prop("disabled", true);
+        optionsElement.empty();
+        selectedOption = null;
+      }
+
+      // Select option
+      function selectOption(button, option) {
+        // Remove selected class from all options
+        $(".quiz-option").removeClass("selected");
+
+        // Add selected class to clicked option
+        button.addClass("selected");
+        selectedOption = option;
+        nextBtn.prop("disabled", false);
+
+        // Stop timer when answer is selected
+        clearInterval(timer);
+      }
+
+      // Show next question or results
+      function nextQuestion() {
+        // Check if answer is correct
+        if (selectedOption === quizData[currentQuestion].answer) {
+          score++;
+        }
+
+        currentQuestion++;
+
+        if (currentQuestion < quizData.length) {
+          loadQuestion();
+        } else {
+          showResults();
+        }
+      }
+
+      // Show results
+      function showResults() {
+        clearInterval(timer);
+        questionScreen.hide();
+        resultsScreen.show();
+
+        const percentage = Math.round((score / quizData.length) * 100);
+
+        scoreElement.text(score);
+        percentageElement.text(`${percentage}% Correct`);
+
+        // Add feedback
+        feedbackElement.empty();
+        quizData.forEach((q, index) => {
+          const feedbackItem = $(`
+                    <div class="mb-4 p-3 rounded-lg ${
+                      q.options[0] === q.answer ? "bg-green-50" : "bg-white"
+                    }">
+                        <p class="font-medium">Q${index + 1}: ${q.question}</p>
+                        <p class="text-sm ${
+                          q.options[0] === q.answer
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }">
+                            Correct answer: ${q.answer}
+                        </p>
+                    </div>
+                `);
+          feedbackElement.append(feedbackItem);
+        });
+      }
+
+      // Timer function
+      function startTimer() {
+        timer = setInterval(() => {
+          timeLeft--;
+          timerElement.text(timeLeft);
+
+          if (timeLeft <= 0) {
+            clearInterval(timer);
+            if (selectedOption === null) {
+              nextBtn.prop("disabled", false);
+            }
+          }
+        }, 1000);
+      }
+
+      // Event listeners
+      startBtn.on("click", initQuiz);
+      nextBtn.on("click", nextQuestion);
+      restartBtn.on("click", () => {
+        resultsScreen.hide();
+        startScreen.show();
+      });
+
+      // Initialize Feather Icons
+      feather.replace();
+    </script>
+  </body>
+</html>
